@@ -1,0 +1,2 @@
+# can be used to apply cli args to the docker build command. For example to change the buildkit progress output apply "DOCKER_BUILD_CLI_ARGS=--progress=plain"
+DOCKER_BUILD_CLI_ARGS ?= ""

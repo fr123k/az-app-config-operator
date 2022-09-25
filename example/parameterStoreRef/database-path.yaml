@@ -1,0 +1,9 @@
+apiVersion: ssm.aws/v1alpha1
+kind: ParameterStore
+metadata:
+  name: foo-app
+spec:
+  valueFrom:
+    parameterStoreRef:
+      path: /stg/foo-app/
+      recursive: true

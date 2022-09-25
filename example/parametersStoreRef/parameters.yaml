@@ -1,0 +1,14 @@
+apiVersion: ssm.aws/v1alpha1
+kind: ParameterStore
+metadata:
+  annotations:
+    update: now
+  name: foo-app-keys
+  namespace: test
+spec:
+  valueFrom:
+    parametersStoreRef:
+      - name: dbuser
+        key: /stg/foo-app/user/dbuser
+      - name: dbpassword
+        key: /stg/foo-app/password/dbpassword

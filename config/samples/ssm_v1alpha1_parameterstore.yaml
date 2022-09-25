@@ -1,0 +1,6 @@
+apiVersion: ssm.aws/v1alpha1
+kind: ParameterStore
+metadata:
+  name: parameterstore-sample
+spec:
+  # TODO(user): Add fields here

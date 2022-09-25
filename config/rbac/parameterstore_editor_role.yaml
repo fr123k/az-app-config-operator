@@ -1,0 +1,24 @@
+# permissions for end users to edit parameterstores.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: parameterstore-editor-role
+rules:
+- apiGroups:
+  - ssm.aws
+  resources:
+  - parameterstores
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ssm.aws
+  resources:
+  - parameterstores/status
+  verbs:
+  - get
