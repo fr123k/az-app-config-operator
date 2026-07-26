@@ -2,60 +2,17 @@ package azure
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
-	"sync"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azappconfig"
 	"github.com/fr123k/aws-ssm-operator/api/v1alpha1"
 	errs "github.com/pkg/errors"
 )
-
-type fakeCredentialResponse struct {
-	token azcore.AccessToken
-	err   error
-}
-
-type fakeCredential struct {
-	getTokenCalls int
-	mut           *sync.Mutex
-	responses     []fakeCredentialResponse
-	static        *fakeCredentialResponse
-}
-
-func NewFakeCredential() *fakeCredential {
-	return &fakeCredential{mut: &sync.Mutex{}}
-}
-
-func (c *fakeCredential) SetResponse(tk azcore.AccessToken, err error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.static = &fakeCredentialResponse{tk, err}
-}
-
-func (c *fakeCredential) AppendResponse(tk azcore.AccessToken, err error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.responses = append(c.responses, fakeCredentialResponse{tk, err})
-}
-
-func (c *fakeCredential) GetToken(ctx context.Context, opts policy.TokenRequestOptions) (azcore.AccessToken, error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.getTokenCalls += 1
-	if c.static != nil {
-		return c.static.token, c.static.err
-	}
-	response := c.responses[0]
-	c.responses = c.responses[1:]
-	return response.token, response.err
-}
 
 type AppConfigClient struct {
 	Client *azappconfig.Client
@@ -71,10 +28,12 @@ func endpoint(name *string) string {
 
 func NewAppClient(name *string) (*AppConfigClient, error) {
 	if lsEp := os.Getenv("LOCAL_STACK_ENDPOINT"); lsEp != "" {
-		c2 := NewFakeCredential()
-		c2.SetResponse(azcore.AccessToken{Token: "***", ExpiresOn: time.Now().Add(time.Hour)}, nil)
-
-		client, err := azappconfig.NewClient(endpoint(name), c2, nil)
+		// For local testing the endpoint is an HTTP test server. NewClient uses
+		// a bearer-token policy that rejects authenticated requests over HTTP,
+		// so use NewClientFromConnectionString (HMAC auth) which has no such
+		// restriction.
+		connStr := fmt.Sprintf("Endpoint=%s;Id=test;Secret=%s", lsEp, base64.StdEncoding.EncodeToString([]byte("test")))
+		client, err := azappconfig.NewClientFromConnectionString(connStr, nil)
 		if err != nil {
 			return nil, err
 		}

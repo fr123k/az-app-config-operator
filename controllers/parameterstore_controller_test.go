@@ -28,7 +28,7 @@ func TestParameterStoreController(t *testing.T) {
 	parameterStoreList := &v1alpha1.ParameterStoreList{}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeBuilder.GroupVersion, parameterStore, parameterStoreList)
+	s.AddKnownTypes(v1alpha1.GroupVersion, parameterStore, parameterStoreList)
 
 	// Create a fake client to mock API calls.
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(parameterStore).Build()
