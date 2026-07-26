@@ -20,7 +20,7 @@ var responses = NewQueue()
 func AddSSMError(t *testing.T, code int, typ string, msg string) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(code)
-		_, _ = rw.Write([]byte(fmt.Sprintf(`{"__type":"%s", "message": "%s"}`, typ, msg)))
+		_, _ = fmt.Fprintf(rw, `{"__type":"%s", "message": "%s"}`, typ, msg)
 	}))
 	// Close the server when test finishes
 	t.Cleanup(server.Close)
