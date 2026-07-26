@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -16,7 +17,7 @@ type ParameterError struct {
 }
 
 func NewSSMError(msg string) *SSMError {
-	return &SSMError{Err: fmt.Errorf(msg)}
+	return &SSMError{Err: errors.New(msg)}
 }
 
 func (e *SSMError) Error() string {

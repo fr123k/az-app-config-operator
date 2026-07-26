@@ -48,11 +48,15 @@ func TestMain(m *testing.M) {
 		ScenarioInitializer: InitializeScenario,
 		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {
 			server := AWSTestServer(goDogResponses)
-			os.Setenv("LOCAL_STACK_ENDPOINT", server.URL)
+			if err := os.Setenv("LOCAL_STACK_ENDPOINT", server.URL); err != nil {
+				panic(err)
+			}
 
 			tsc.AfterSuite(func() {
 				server.Close()
-				os.Unsetenv("LOCAL_STACK_ENDPOINT")
+				if err := os.Unsetenv("LOCAL_STACK_ENDPOINT"); err != nil {
+					panic(err)
+				}
 			})
 		},
 		Options: &opts,
