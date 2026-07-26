@@ -14,5 +14,6 @@ import (
 func main() {
 	os.Chdir("../")
 	opts := build.NewGoServiceBuild("az-app-config-operator")
+	opts.Image = ""
 	build.BuildAsync(opts)
 }

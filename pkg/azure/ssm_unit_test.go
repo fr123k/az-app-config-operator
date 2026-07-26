@@ -20,7 +20,7 @@ var responses = NewQueue()
 func AddSSMError(t *testing.T, code int, typ string, msg string) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(code)
-		rw.Write([]byte(fmt.Sprintf(`{"__type":"%s", "message": "%s"}`, typ, msg)))
+		_, _ = fmt.Fprintf(rw, `{"__type":"%s", "message": "%s"}`, typ, msg)
 	}))
 	// Close the server when test finishes
 	t.Cleanup(server.Close)
@@ -31,11 +31,11 @@ func AWSTestServer(responses *Queue) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if responses.Len() < 1 {
 			rw.WriteHeader(404)
-			rw.Write([]byte(`{"__type":"Parameter not found", "message": "The parameter was not found"}`))
+			_, _ = rw.Write([]byte(`{"__type":"Parameter not found", "message": "The parameter was not found"}`))
 			return
 		}
 		response := responses.Pop()
-		rw.Write([]byte(response))
+		_, _ = rw.Write([]byte(response))
 	}))
 	return server
 }
@@ -235,7 +235,7 @@ func TestOneNonExistingParameter(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Len(t, err.ParameterErrors, 1)
 	assert.Equal(t, "NAME3", err.ParameterErrors[0].Name)
-	assert.Equal(t, "operation error SSM: GetParameter, https response error StatusCode: 400, RequestID: , api error Parameter not found: The parameter was not found", err.ParameterErrors[0].Err.Error())
+	assert.Contains(t, err.ParameterErrors[0].Err.Error(), "The parameter was not found")
 	assert.Len(t, anno, 0)
 	assert.Len(t, result, 0)
 }

@@ -42,7 +42,6 @@ import (
 	ssmv1alpha1 "github.com/fr123k/aws-ssm-operator/api/v1alpha1"
 
 	"github.com/fr123k/aws-ssm-operator/pkg/aws"
-	awsCli "github.com/fr123k/aws-ssm-operator/pkg/aws"
 )
 
 // var log = logf.Log.WithName("parameterstore-controller")
@@ -52,7 +51,7 @@ type ParameterStoreReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
-	SSMc *awsCli.SSMClient
+	SSMc *aws.SSMClient
 }
 
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
@@ -77,7 +76,7 @@ func (r *ParameterStoreReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Fetch the ParameterStore instance
 	instance := &ssmv1alpha1.ParameterStore{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile req.
@@ -95,7 +94,7 @@ func (r *ParameterStoreReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		var ssmStatus ssmv1alpha1.SSMStatus
 		var conditionType string
 		// Update status.Nodes if needed
-		if ssmErr, ok := err.(*awsCli.SSMError); ok {
+		if ssmErr, ok := err.(*aws.SSMError); ok {
 			ks := make([]ssmv1alpha1.KeyStatus, len(ssmErr.ParameterErrors))
 			for i, e := range ssmErr.ParameterErrors {
 				ks[i] = ssmv1alpha1.KeyStatus{Name: e.Name, Error: e.Error()}
@@ -147,15 +146,15 @@ func (r *ParameterStoreReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Check if this Secret already exists
 	current := &corev1.Secret{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, current)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, current)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			reqLogger.Info("Creating a new Secret", "desired.Namespace", desired.Namespace, "desired.Name", desired.Name)
-			err = r.Client.Create(context.TODO(), desired)
+			err = r.Create(context.TODO(), desired)
 		}
 	} else {
 		reqLogger.Info("Updating an existing Secret", "desired.Namespace", desired.Namespace, "desired.Name", desired.Name)
-		err = r.Client.Update(context.TODO(), desired)
+		err = r.Update(context.TODO(), desired)
 	}
 
 	if err != nil {
