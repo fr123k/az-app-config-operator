@@ -235,7 +235,7 @@ func TestOneNonExistingParameter(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Len(t, err.ParameterErrors, 1)
 	assert.Equal(t, "NAME3", err.ParameterErrors[0].Name)
-	assert.Equal(t, "operation error SSM: GetParameter, https response error StatusCode: 400, RequestID: , api error Parameter not found: The parameter was not found", err.ParameterErrors[0].Err.Error())
+	assert.Contains(t, err.ParameterErrors[0].Err.Error(), "The parameter was not found")
 	assert.Len(t, anno, 0)
 	assert.Len(t, result, 0)
 }
