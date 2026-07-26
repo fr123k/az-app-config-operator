@@ -14,10 +14,6 @@ import (
 func main() {
 	os.Chdir("../")
 	opts := build.NewGoServiceBuild("az-app-config-operator")
-	// This Kubernetes operator is built and released via its own Dockerfile/
-	// Makefile, so disable the engine-ci publish (image push) phase. Setting
-	// Image to "" skips the Docker registry push (see NewGoLibraryBuild), which
-	// otherwise fails in PR builds without Docker Hub credentials.
 	opts.Image = ""
 	build.BuildAsync(opts)
 }
