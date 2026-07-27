@@ -29,6 +29,9 @@ func AddSSMError(t *testing.T, code int, typ string, msg string) {
 
 func AWSTestServer(responses *Queue) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// azappconfig v1.2.0 dereferences the Sync-Token header in GetSetting/
+		// ListRevisions responses, so the test server must always provide one.
+		rw.Header().Set("Sync-Token", "id=value;sn=0")
 		if responses.Len() < 1 {
 			rw.WriteHeader(404)
 			_, _ = rw.Write([]byte(`{"__type":"Parameter not found", "message": "The parameter was not found"}`))
